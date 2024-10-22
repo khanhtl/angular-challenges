@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
   FakeHttpService,
   randStudent,
@@ -38,22 +38,22 @@ import { ListItemComponent } from '../../ui/list-item/list-item.component';
   imports: [CardComponent, ListItemComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class StudentCardComponent implements OnInit {
-  students = toSignal(this.store.students$);
+export class StudentCardComponent {
+  #http = inject(FakeHttpService);
+  #store = inject(StudentStore);
 
-  constructor(
-    private http: FakeHttpService,
-    private store: StudentStore,
-  ) {}
+  students = toSignal(this.#store.students$);
 
-  ngOnInit(): void {
-    this.http.fetchStudents$.subscribe((s) => this.store.addAll(s));
+  constructor() {
+    this.#http.fetchStudents$
+      .pipe(takeUntilDestroyed())
+      .subscribe((s) => this.#store.addAll(s));
   }
   handleDeleteItem(item: Student) {
-    this.store.deleteOne(item.id);
+    this.#store.deleteOne(item.id);
   }
 
   handleAddItem() {
-    this.store.addOne(randStudent());
+    this.#store.addOne(randStudent());
   }
 }

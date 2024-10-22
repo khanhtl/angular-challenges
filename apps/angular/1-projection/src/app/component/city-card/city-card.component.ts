@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { CityStore } from '../../data-access/city.store';
 import {
   FakeHttpService,
@@ -38,23 +38,23 @@ import { ListItemComponent } from '../../ui/list-item/list-item.component';
   imports: [CardComponent, ListItemComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CityCardComponent implements OnInit {
-  cities = toSignal(this.store.cities$);
+export class CityCardComponent {
+  #http = inject(FakeHttpService);
+  #store = inject(CityStore);
 
-  constructor(
-    private http: FakeHttpService,
-    private store: CityStore,
-  ) {}
+  cities = toSignal(this.#store.cities$);
 
-  ngOnInit(): void {
-    this.http.fetchCities$.subscribe((s) => this.store.addAll(s));
+  constructor() {
+    this.#http.fetchCities$
+      .pipe(takeUntilDestroyed())
+      .subscribe((s) => this.#store.addAll(s));
   }
 
   handleDeleteItem(item: City) {
-    this.store.deleteOne(item.id);
+    this.#store.deleteOne(item.id);
   }
 
   handleAddItem() {
-    this.store.addOne(randomCity());
+    this.#store.addOne(randomCity());
   }
 }

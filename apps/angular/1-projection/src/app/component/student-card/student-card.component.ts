@@ -1,31 +1,45 @@
-import { Component, OnInit } from '@angular/core';
-import { FakeHttpService } from '../../data-access/fake-http.service';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import {
+  FakeHttpService,
+  randStudent,
+} from '../../data-access/fake-http.service';
 import { StudentStore } from '../../data-access/student.store';
-import { CardType } from '../../model/card.model';
 import { Student } from '../../model/student.model';
 import { CardComponent } from '../../ui/card/card.component';
+import { ListItemComponent } from '../../ui/list-item/list-item.component';
 
 @Component({
   selector: 'app-student-card',
   template: `
+    <ng-template #studentItemTmpl let-item>
+      <app-list-item (deleteItem)="handleDeleteItem(item)">
+        {{ item.firstName }}
+      </app-list-item>
+    </ng-template>
     <app-card
-      [list]="students"
-      [type]="cardType"
-      customClass="bg-light-green"></app-card>
+      class="bg-light-green"
+      [list]="students()"
+      [itemTemplate]="studentItemTmpl"
+      (addNewItem)="handleAddItem()">
+      <img src="assets/img/student.webp" width="200px" />
+    </app-card>
   `,
   standalone: true,
   styles: [
     `
-      ::ng-deep .bg-light-green {
-        background-color: rgba(0, 250, 0, 0.1);
+      :host {
+        .bg-light-green {
+          background-color: rgba(0, 250, 0, 0.1);
+        }
       }
     `,
   ],
-  imports: [CardComponent],
+  imports: [CardComponent, ListItemComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StudentCardComponent implements OnInit {
-  students: Student[] = [];
-  cardType = CardType.STUDENT;
+  students = toSignal(this.store.students$);
 
   constructor(
     private http: FakeHttpService,
@@ -34,7 +48,12 @@ export class StudentCardComponent implements OnInit {
 
   ngOnInit(): void {
     this.http.fetchStudents$.subscribe((s) => this.store.addAll(s));
+  }
+  handleDeleteItem(item: Student) {
+    this.store.deleteOne(item.id);
+  }
 
-    this.store.students$.subscribe((s) => (this.students = s));
+  handleAddItem() {
+    this.store.addOne(randStudent());
   }
 }

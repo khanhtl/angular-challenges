@@ -2,6 +2,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  contentChild,
   input,
   output,
   TemplateRef,
@@ -43,5 +44,5 @@ import { Item } from '../../model/item.model';
 export class CardComponent<T extends Item> {
   addNewItem = output();
   list = input<T[]>();
-  itemTemplate = input.required<TemplateRef<unknown>>();
+  itemTemplate = contentChild.required(TemplateRef);
 }

@@ -12,17 +12,16 @@ import { ListItemComponent } from '../../ui/list-item/list-item.component';
 @Component({
   selector: 'app-student-card',
   template: `
-    <ng-template #studentItemTmpl let-item>
-      <app-list-item (deleteItem)="handleDeleteItem(item)">
-        {{ item.firstName }}
-      </app-list-item>
-    </ng-template>
     <app-card
       class="bg-light-green"
       [list]="students()"
-      [itemTemplate]="studentItemTmpl"
       (addNewItem)="handleAddItem()">
       <img src="assets/img/student.webp" width="200px" />
+      <ng-template let-item>
+        <app-list-item (deleteItem)="handleDeleteItem(item)">
+          {{ item.firstName }}
+        </app-list-item>
+      </ng-template>
     </app-card>
   `,
   standalone: true,

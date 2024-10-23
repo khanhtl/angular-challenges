@@ -6,6 +6,7 @@ import {
 } from '../../data-access/fake-http.service';
 import { TeacherStore } from '../../data-access/teacher.store';
 import { Teacher } from '../../model/teacher.model';
+import { TypedTemplateDirective } from '../../typed-template.directive';
 import { CardComponent } from '../../ui/card/card.component';
 import { ListItemComponent } from '../../ui/list-item/list-item.component';
 
@@ -17,7 +18,7 @@ import { ListItemComponent } from '../../ui/list-item/list-item.component';
       [list]="teachers()"
       (addNewItem)="handleAddItem()">
       <img src="assets/img/teacher.png" width="200px" />
-      <ng-template let-item>
+      <ng-template [typedTemplate]="typeToken" let-item>
         <app-list-item (deleteItem)="handleDeleteItem(item)">
           {{ item.firstName }}
         </app-list-item>
@@ -34,7 +35,7 @@ import { ListItemComponent } from '../../ui/list-item/list-item.component';
     `,
   ],
   standalone: true,
-  imports: [CardComponent, ListItemComponent],
+  imports: [CardComponent, ListItemComponent, TypedTemplateDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TeacherCardComponent {
@@ -42,6 +43,10 @@ export class TeacherCardComponent {
   #store = inject(TeacherStore);
 
   teachers = toSignal(this.#store.teachers$);
+
+  typeToken!: {
+    $implicit: Teacher;
+  };
 
   constructor() {
     this.#http.fetchTeachers$
